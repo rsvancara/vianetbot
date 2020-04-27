@@ -6,11 +6,14 @@ import (
 	"fmt"
 	"internal/internal/config"
 	"internal/internal/routes"
+	"internal/internal/metrics"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"time"
+
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func main() {
@@ -27,16 +30,15 @@ func main() {
 	}
 
 	fmt.Println("== Initializing Configuration ==")
-	//fmt.Printf("Database URI: %s\n", cfg.Dburi)
-	//fmt.Printf("Cache URI: %s\n", cfg.Cacheuri)
-	fmt.Println(cfg)
+	fmt.Printf("Database URI: %s\n", cfg.Dburi)
+	fmt.Printf("Cache URI: %s\n", cfg.Cacheuri)
 
-	//middleware := metrics.NewPrometheusMiddleware(metrics.Opts{})
+	middleware := metrics.NewPrometheusMiddleware(metrics.Opts{})
 
 	r := routes.GetRoutes()
 
-	//r.Handle("/metrics", promhttp.Handler())
-	//r.Use(middleware.InstrumentHandlerDuration)
+	r.Handle("/metrics", promhttp.Handler())
+	r.Use(middleware.InstrumentHandlerDuration)
 
 	fmt.Println("Now serving requests on port 5000")
 
